@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#050914">
-  <title>제이의 게임 아지트</title>
+  <title>김재이 홈페이지</title>
   <style>
     :root { --bg:#050914; --panel:#0c1426; --panel2:#101d35; --line:#1d3152; --blue:#4bdcff; --blue2:#168cff; --white:#eff8ff; --muted:#9aacc8; }
     * { box-sizing:border-box; }
@@ -83,7 +83,7 @@
 <body>
   <header class="topbar">
     <nav class="nav wrap" aria-label="주요 메뉴">
-      <a class="brand" href="#home"><b>◆</b> JAY'S ARCADE</a>
+      <a class="brand" href="#home"><b>◆</b> 김재이 홈페이지</a>
       <div class="menu">
         <a href="#about">소개</a><a href="#games">좋아하는 게임</a><a href="#shooter-section">슈팅게임</a><a href="#quiz-section">퀴즈</a><a href="#goals">목표</a>
       </div>
@@ -93,8 +93,8 @@
     <section class="hero" id="home">
       <div class="hero-inner wrap">
         <div class="eyebrow">PLAYER 1 · WEBSITE ONLINE</div>
-        <h1>안녕! 여기는<br><span>제이의 게임 아지트</span></h1>
-        <p>게임도 좋아하고, 새로운 걸 만드는 것도 좋아하는 초등학교 6학년 제이의 공간이야. 구경하고 미니게임도 해봐!</p>
+        <h1>안녕! 여기는<br><span>김재이의 게임 아지트</span></h1>
+        <p>게임도 좋아하고, 새로운 걸 만드는 것도 좋아하는 초등학교 6학년 김재이의 공간이야. 구경하고 미니게임도 해봐!</p>
         <div class="actions"><a class="btn primary" href="#shooter-section">🚀 슈팅게임 시작</a><button class="btn" id="helloButton" type="button">✨ 인사하기</button></div>
         <div class="stats"><div class="stat"><strong>🎮 게임</strong><small>즐겨 하는 취미</small></div><div class="stat"><strong>💡 코딩</strong><small>새로운 도전</small></div><div class="stat"><strong>⭐ 꿈꾸는 중</strong><small>나만의 게임 만들기</small></div></div>
       </div>
@@ -103,7 +103,7 @@
       <div class="wrap">
         <div class="section-head"><p class="eyebrow">ABOUT PLAYER 1</p><h2>나를 소개할게</h2><p>아래 내용을 내 이야기로 바꿔서 나만의 홈페이지로 꾸며봐!</p></div>
         <div class="grid">
-          <article class="card"><div class="card-icon">👋</div><h3>나는 제이야</h3><p>초등학교 6학년이고, 재미있는 게임과 새로운 아이디어를 좋아해. 직접 만든 것을 친구들에게 보여주는 것도 즐거워!</p></article>
+          <article class="card"><div class="card-icon">👋</div><h3>나는 김재이야</h3><p>초등학교 6학년이고, 재미있는 게임과 새로운 아이디어를 좋아해. 직접 만든 것을 친구들에게 보여주는 것도 즐거워!</p></article>
           <article class="card"><div class="card-icon">🎯</div><h3>좋아하는 취미</h3><p>게임하기, 블록으로 무언가 만들기, 코딩으로 작은 작품 만들기가 취미야. 오늘은 어떤 걸 만들지 늘 궁금해.</p><span class="tag">게임</span><span class="tag">코딩</span><span class="tag">만들기</span></article>
           <article class="card"><div class="card-icon">🧩</div><h3>내가 좋아하는 것</h3><p>어려운 문제를 하나씩 풀어서 작동하게 만들 때 뿌듯해. 실패해도 다시 고치면 되니까!</p></article>
         </div>
@@ -149,7 +149,7 @@
       </div>
     </section>
   </main>
-  <footer><div class="wrap">Made with <b>💙</b> by 제이 · 나만의 멋진 아지트</div></footer>
+  <footer><div class="wrap">Made with <b>💙</b> by 김재이 · 나만의 멋진 아지트</div></footer>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script>
     // 버튼을 눌렀을 때 잠깐 나타나는 알림
@@ -164,7 +164,7 @@
     document.querySelector('#helloButton').addEventListener('click', () => showToast('반가워! 내 게임 아지트에 온 걸 환영해 ✨'));
     document.querySelector('#goalButton').addEventListener('click', event => {
       event.currentTarget.textContent = '응원 고마워! ✨';
-      showToast('제이의 다음 레벨을 응원할게! 💙');
+      showToast('김재이의 다음 레벨을 응원할게! 💙');
     });
 
     // 퀴즈: 문제와 보기를 바꿔 가며 보여줘요.
@@ -198,7 +198,7 @@
     (() => {
       const canvas = document.querySelector('#shooter'), ctx = canvas.getContext('2d');
       const overlay = document.querySelector('#gameOverlay'), scoreText = document.querySelector('#score');
-      const keys = new Set(); let w = 0, h = 0, dpr = 1, player, bullets = [], enemies = [], stars = [], score = 0, best = Number(localStorage.getItem('jayBestScore') || 0), running = false, last = 0, spawn = 0, shot = 0, frame;
+      const keys = new Set(); let w = 0, h = 0, dpr = 1, player, bullets = [], enemies = [], stars = [], score = 0, best = Number(localStorage.getItem('jaeBestScore') || 0), running = false, last = 0, spawn = 0, shot = 0, frame;
       document.querySelector('#bestScore').textContent = best;
       function resize() {
         const box = canvas.getBoundingClientRect(); w = box.width; h = box.height; dpr = Math.min(devicePixelRatio || 1, 2);
@@ -214,7 +214,7 @@
       function start() { cancelAnimationFrame(frame); reset(); running = true; overlay.hidden = true; frame = requestAnimationFrame(loop); }
       function finish() {
         running = false;
-        if (score > best) { best = score; localStorage.setItem('jayBestScore', String(best)); document.querySelector('#bestScore').textContent = best; }
+        if (score > best) { best = score; localStorage.setItem('jaeBestScore', String(best)); document.querySelector('#bestScore').textContent = best; }
         document.querySelector('#overlayTitle').textContent = '게임 오버!';
         document.querySelector('#overlayText').textContent = `최종 점수 ${score}점 · 다시 도전해봐!`;
         document.querySelector('#startGame').textContent = '다시 시작'; overlay.hidden = false;
