@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>별빛 수비대 — 2D 슈팅</title>
+  <style>
+    :root { color-scheme: dark; --bg: #080d1b; --panel: #101a31; --muted: #91a2c4; --cyan: #69e5ff; --pink: #ff6c9d; }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 24px; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #eef5ff; background: radial-gradient(ellipse at 50% 0%, #17274b 0, var(--bg) 60%); }
+    .game { width: min(100%, 760px); }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 2px 14px; }
+    h1 { margin: 0; font-size: clamp(1.2rem, 4vw, 1.65rem); letter-spacing: -.04em; }
+    h1 span { color: var(--cyan); }
+    .score-box { min-width: 110px; padding: 8px 14px; text-align: center; border: 1px solid #263757; border-radius: 12px; background: #101a31cc; }
+    .score-label { color: var(--muted); font-size: .7rem; letter-spacing: .15em; }
+    #score { color: var(--cyan); font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .stage { position: relative; overflow: hidden; border: 1px solid #314568; border-radius: 18px; background: #090f20; box-shadow: 0 24px 80px #0008, inset 0 0 35px #0a1832; }
+    canvas { display: block; width: 100%; height: min(67vh, 520px); min-height: 340px; }
+    .overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; background: #080d1bd9; backdrop-filter: blur(5px); }
+    .overlay[hidden] { display: none; }
+    .card { max-width: 360px; }
+    .card .emoji { font-size: 2.8rem; }
+    .card h2 { margin: 8px 0; font-size: 1.7rem; }
+    .card p { margin: 0 0 20px; color: #aab8d3; line-height: 1.65; }
+    button { border: 0; border-radius: 10px; padding: 11px 20px; color: #07121e; background: var(--cyan); font: inherit; font-weight: 800; cursor: pointer; box-shadow: 0 5px 20px #69e5ff33; transition: transform .15s, filter .15s; }
+    button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    button:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+    .help { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px 20px; margin-top: 14px; color: var(--muted); font-size: .86rem; }
+    kbd { padding: 2px 7px; border: 1px solid #405273; border-radius: 5px; color: #e8f2ff; background: #17233c; font: inherit; font-size: .8rem; }
+    .mobile-controls { display: none; gap: 12px; justify-content: center; margin-top: 14px; }
+    .mobile-controls button { width: 72px; padding: 10px; color: white; background: #243653; box-shadow: none; touch-action: none; }
+    @media (pointer: coarse) { .mobile-controls { display: flex; } }
+    @media (max-width: 480px) { body { padding: 16px 12px; } canvas { min-height: 360px; height: 62vh; } }
+  </style>
+</head>
+<body>
+  <main class="game">
+    <header>
+      <h1><span>✦</span> 제이코딩학원</h1>
+      <div class="score-box"><div class="score-label">SCORE</div><div id="score">0000</div></div>
+    </header>
+    <section class="stage" aria-label="슈팅 게임">
+      <canvas id="gameCanvas" aria-label="플레이어를 움직여 적을 맞히세요"></canvas>
+      <div class="overlay" id="overlay">
+        <div class="card">
+          <div class="emoji" id="resultEmoji">🚀</div>
+          <h2 id="resultTitle">출격 준비!</h2>
+          <p id="resultText">위에서 내려오는 적을 격추하세요.<br>적과 부딪히면 게임이 끝납니다.</p>
+          <button id="startButton">게임 시작</button>
+        </div>
+      </div>
+    </section>
+    <div class="help"><span><kbd>←</kbd> <kbd>→</kbd> 이동</span><span><kbd>Space</kbd> 발사</span><span>적을 맞히면 +10점</span></div>
+    <div class="mobile-controls" aria-label="터치 조작">
+      <button id="leftButton" aria-label="왼쪽 이동">◀</button><button id="fireButton" aria-label="발사">발사</button><button id="rightButton" aria-label="오른쪽 이동">▶</button>
+    </div>
+  </main>
+  <script>
+    (() => {
+      const canvas = document.querySelector('#gameCanvas');
+      const ctx = canvas.getContext('2d');
+      const overlay = document.querySelector('#overlay');
+      const scoreEl = document.querySelector('#score');
+      const keys = new Set();
+      let width = 0, height = 0, dpr = 1, player, bullets, enemies, stars, score = 0, running = false, lastTime = 0, spawnClock = 0, shotClock = 0, animationId;
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = rect.width; height = rect.height;
+        canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        if (player) player.x = Math.max(player.r, Math.min(width - player.r, player.x));
+        draw();
+      }
+      function reset() {
+        score = 0; scoreEl.textContent = '0000';
+        player = { x: width / 2, y: height - 44, r: 15, speed: 340 };
+        bullets = []; enemies = []; spawnClock = 0; shotClock = 0; lastTime = performance.now();
+        stars = Array.from({ length: 75 }, () => ({ x: Math.random() * width, y: Math.random() * height, s: Math.random() * 1.7 + .35, a: Math.random() * .65 + .15 }));
+      }
+      function start() {
+        cancelAnimationFrame(animationId); reset(); running = true; overlay.hidden = true;
+        animationId = requestAnimationFrame(loop);
+      }
+      function endGame() {
+        running = false;
+        document.querySelector('#resultEmoji').textContent = '💥';
+        document.querySelector('#resultTitle').textContent = '게임 오버';
+        document.querySelector('#resultText').innerHTML = `최종 점수 <strong style="color:#69e5ff">${score}</strong>점<br>다시 도전해 볼까요?`;
+        document.querySelector('#startButton').textContent = '다시 시작';
+        overlay.hidden = false;
+      }
+      function loop(now) {
+        if (!running) return;
+        const dt = Math.min((now - lastTime) / 1000, .04); lastTime = now;
+        update(dt); draw();
+        if (running) animationId = requestAnimationFrame(loop);
+      }
+      function update(dt) {
+        if (keys.has('arrowleft') || keys.has('a')) player.x -= player.speed * dt;
+        if (keys.has('arrowright') || keys.has('d')) player.x += player.speed * dt;
+        player.x = Math.max(player.r + 4, Math.min(width - player.r - 4, player.x));
+        shotClock -= dt;
+        if ((keys.has(' ') || keys.has('fire')) && shotClock <= 0) {
+          bullets.push({ x: player.x, y: player.y - 17, r: 4, speed: 520 }); shotClock = .22;
+        }
+        for (const b of bullets) b.y -= b.speed * dt;
+        bullets = bullets.filter(b => b.y > -10);
+        spawnClock += dt;
+        const interval = Math.max(.38, .95 - score / 700);
+        if (spawnClock >= interval) {
+          spawnClock = 0;
+          const r = 13 + Math.random() * 9;
+          enemies.push({ x: r + Math.random() * (width - 2 * r), y: -r, r, speed: 85 + Math.random() * 65 + score * .12, phase: Math.random() * 6 });
+        }
+        for (const e of enemies) {
+          e.y += e.speed * dt;
+          e.x += Math.sin(e.y * .012 + e.phase) * 22 * dt;
+          const dx = e.x - player.x, dy = e.y - player.y;
+          if (Math.hypot(dx, dy) < e.r + player.r * .75) { endGame(); return; }
+        }
+        for (const b of bullets) for (const e of enemies) {
+          if (!e.hit && Math.hypot(b.x - e.x, b.y - e.y) < b.r + e.r) {
+            e.hit = true; b.dead = true; score += 10; scoreEl.textContent = String(score).padStart(4, '0'); break;
+          }
+        }
+        bullets = bullets.filter(b => !b.dead);
+        enemies = enemies.filter(e => !e.hit && e.y < height + e.r);
+        for (const s of stars) { s.y += (18 + s.s * 20) * dt; if (s.y > height) { s.y = 0; s.x = Math.random() * width; } }
+      }
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+        const bg = ctx.createLinearGradient(0, 0, 0, height); bg.addColorStop(0, '#0d1830'); bg.addColorStop(1, '#080d1b');
+        ctx.fillStyle = bg; ctx.fillRect(0, 0, width, height);
+        for (const s of stars || []) { ctx.globalAlpha = s.a; ctx.fillStyle = '#c7eaff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.s, 0, Math.PI * 2); ctx.fill(); }
+        ctx.globalAlpha = 1;
+        for (const b of bullets || []) {
+          ctx.shadowColor = '#69e5ff'; ctx.shadowBlur = 14; ctx.fillStyle = '#c9f7ff';
+          ctx.beginPath(); ctx.roundRect(b.x - 2, b.y - 10, 4, 16, 3); ctx.fill();
+        }
+        ctx.shadowBlur = 0;
+        for (const e of enemies || []) {
+          ctx.save(); ctx.translate(e.x, e.y); ctx.shadowColor = '#ff548c'; ctx.shadowBlur = 17;
+          ctx.fillStyle = '#ff668f'; ctx.beginPath(); ctx.moveTo(0, e.r); ctx.lineTo(e.r * .9, -e.r * .5); ctx.quadraticCurveTo(0, -e.r * 1.25, -e.r * .9, -e.r * .5); ctx.closePath(); ctx.fill();
+          ctx.shadowBlur = 0; ctx.fillStyle = '#521c42'; ctx.beginPath(); ctx.arc(0, -e.r * .25, e.r * .27, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+        }
+        if (player) {
+          ctx.save(); ctx.translate(player.x, player.y); ctx.shadowColor = '#44dcff'; ctx.shadowBlur = 20;
+          ctx.fillStyle = '#53cfff'; ctx.beginPath(); ctx.moveTo(0, -player.r - 7); ctx.lineTo(player.r, player.r); ctx.lineTo(0, player.r * .52); ctx.lineTo(-player.r, player.r); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = '#e4fbff'; ctx.beginPath(); ctx.ellipse(0, -2, 4, 8, 0, 0, Math.PI * 2); ctx.fill();
+          if (running) { ctx.shadowColor = '#ffb54d'; ctx.shadowBlur = 12; ctx.fillStyle = '#ffb54d'; ctx.beginPath(); ctx.moveTo(-6, player.r - 2); ctx.lineTo(0, player.r + 13 + Math.random() * 6); ctx.lineTo(6, player.r - 2); ctx.fill(); }
+          ctx.restore();
+        }
+        ctx.shadowBlur = 0;
+      }
+      window.addEventListener('keydown', e => {
+        if (['ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
+        if (e.key === ' ' && !running && !overlay.hidden) start();
+        keys.add(e.key === ' ' ? ' ' : e.key.toLowerCase());
+      });
+      window.addEventListener('keyup', e => keys.delete(e.key === ' ' ? ' ' : e.key.toLowerCase()));
+      window.addEventListener('blur', () => keys.clear());
+      document.querySelector('#startButton').addEventListener('click', start);
+      function holdButton(id, key) {
+        const button = document.querySelector(id);
+        button.addEventListener('pointerdown', e => { e.preventDefault(); button.setPointerCapture(e.pointerId); keys.add(key); });
+        for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) button.addEventListener(type, () => keys.delete(key));
+      }
+      holdButton('#leftButton', 'arrowleft'); holdButton('#rightButton', 'arrowright'); holdButton('#fireButton', 'fire');
+      window.addEventListener('resize', resize);
+      resize();
+    })();
+  </script>
+</body>
+</html>
