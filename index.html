@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050914">
+  <title>제이의 게임 아지트</title>
+  <style>
+    :root { --bg:#050914; --panel:#0c1426; --panel2:#101d35; --line:#1d3152; --blue:#4bdcff; --blue2:#168cff; --white:#eff8ff; --muted:#9aacc8; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; scroll-padding-top:86px; }
+    body { margin:0; color:var(--white); background:var(--bg); font-family:system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.65; }
+    a { color:inherit; text-decoration:none; }
+    button { font:inherit; }
+    .wrap { width:min(1100px, calc(100% - 40px)); margin:auto; }
+    .topbar { position:sticky; z-index:5; top:0; border-bottom:1px solid #1d315299; background:#050914eF; backdrop-filter:blur(14px); }
+    .nav { min-height:70px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .brand { font-weight:900; font-size:1.1rem; letter-spacing:.02em; white-space:nowrap; }
+    .brand b { color:var(--blue); text-shadow:0 0 18px #4bdcff88; }
+    .menu { display:flex; align-items:center; gap:clamp(10px,2.5vw,28px); color:#b6c5dc; font-size:.9rem; }
+    .menu a:hover,.menu a:focus-visible { color:var(--blue); }
+    .hero { min-height:520px; display:grid; align-items:center; position:relative; overflow:hidden; padding:72px 0; background:radial-gradient(ellipse at 80% 45%,#06366466 0,transparent 38%),radial-gradient(ellipse at 20% 10%,#10234a66 0,transparent 40%); }
+    .hero:after { content:""; position:absolute; inset:0; opacity:.18; pointer-events:none; background-image:radial-gradient(#79dfff 1px,transparent 1px); background-size:38px 38px; mask-image:linear-gradient(90deg,#000,transparent 75%); }
+    .hero-inner { z-index:1; position:relative; max-width:760px; }
+    .eyebrow { color:var(--blue); font-size:.82rem; font-weight:800; letter-spacing:.18em; text-transform:uppercase; }
+    h1 { margin:14px 0 12px; font-size:clamp(2.6rem,8vw,5.5rem); letter-spacing:-.065em; line-height:1.07; }
+    h1 span { color:var(--blue); text-shadow:0 0 34px #168cff88; }
+    .hero p { max-width:600px; margin:18px 0 28px; color:#b1bfd6; font-size:clamp(1rem,2vw,1.15rem); }
+    .actions { display:flex; flex-wrap:wrap; gap:12px; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:46px; padding:10px 18px; border:1px solid var(--line); border-radius:10px; color:var(--white); background:#101d35; font-weight:800; cursor:pointer; transition:transform .16s,box-shadow .16s,border-color .16s; }
+    .btn:hover { transform:translateY(-2px); border-color:var(--blue); box-shadow:0 0 22px #168cff33; }
+    .btn.primary { color:#04101b; border-color:transparent; background:linear-gradient(110deg,var(--blue),#70aaff); }
+    .btn:focus-visible,a:focus-visible { outline:3px solid #fff; outline-offset:3px; }
+    .stats { display:flex; flex-wrap:wrap; gap:30px; margin-top:40px; }
+    .stat strong { display:block; color:var(--blue); font-size:1.4rem; }
+    .stat small { color:var(--muted); }
+    section.content { padding:68px 0; border-top:1px solid #1a2a44; }
+    .section-head { margin-bottom:26px; }
+    .section-head .eyebrow { margin:0; }
+    h2 { margin:5px 0 0; font-size:clamp(1.7rem,4vw,2.35rem); letter-spacing:-.04em; }
+    .section-head p { max-width:620px; margin:8px 0 0; color:var(--muted); }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+    .card { padding:22px; border:1px solid var(--line); border-radius:16px; background:linear-gradient(145deg,#0e1930,#091020); box-shadow:0 10px 35px #0002; }
+    .card-icon { width:44px; height:44px; display:grid; place-items:center; border:1px solid #24517a; border-radius:12px; background:#0c2943; font-size:1.3rem; }
+    .card h3 { margin:15px 0 6px; font-size:1.12rem; }
+    .card p { margin:0; color:var(--muted); }
+    .tag { display:inline-block; margin:14px 6px 0 0; padding:3px 9px; border:1px solid #214263; border-radius:99px; color:#8ddfff; background:#0a1b2d; font-size:.78rem; }
+    .game-layout { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(230px,.8fr); gap:18px; align-items:stretch; }
+    .game-box { overflow:hidden; border:1px solid #284267; border-radius:16px; background:#080f1d; box-shadow:0 0 35px #087bca1b; }
+    .game-top { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; border-bottom:1px solid #1e304d; background:#0b1528; }
+    .game-top strong { color:var(--blue); }
+    #score { min-width:52px; text-align:right; font-size:1.2rem; font-weight:900; font-variant-numeric:tabular-nums; }
+    .canvas-wrap { position:relative; }
+    #shooter { display:block; width:100%; height:360px; }
+    .game-overlay { position:absolute; inset:0; display:grid; place-items:center; padding:20px; text-align:center; background:#050a14d9; backdrop-filter:blur(4px); }
+    .game-overlay[hidden] { display:none; }
+    .game-overlay h3 { margin:0 0 6px; font-size:1.5rem; }
+    .game-overlay p { margin:0 0 14px; color:#b1bfd6; }
+    .side-card { display:flex; flex-direction:column; justify-content:space-between; }
+    .side-card ul { padding-left:20px; color:var(--muted); }
+    .side-card li { margin:7px 0; }
+    .controls { display:flex; justify-content:center; gap:10px; margin-top:12px; }
+    .controls button { min-width:62px; touch-action:none; }
+    .quiz { max-width:720px; }
+    .question { min-height:32px; margin:0 0 14px; font-size:1.2rem; font-weight:800; }
+    .answers { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    .answers .btn { justify-content:flex-start; }
+    .answers .btn.correct { border-color:#43e09a; background:#12382d; }
+    .answers .btn.wrong { border-color:#ff7185; background:#3a1927; }
+    #quizResult { min-height:28px; margin-top:12px; color:var(--blue); font-weight:700; }
+    .goal-banner { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:24px; border:1px solid #23517c; border-radius:16px; background:radial-gradient(ellipse at right,#0b3a655c,transparent 55%),#0b1426; }
+    .goal-banner h3 { margin:0 0 4px; font-size:1.3rem; }
+    .goal-banner p { margin:0; color:var(--muted); }
+    footer { padding:25px 0 36px; border-top:1px solid #1a2a44; color:#8294b0; text-align:center; font-size:.88rem; }
+    footer b { color:var(--blue); }
+    .toast { position:fixed; z-index:10; right:20px; bottom:20px; padding:12px 16px; border:1px solid #357ba5; border-radius:12px; background:#0d2033; box-shadow:0 8px 35px #0008; opacity:0; transform:translateY(10px); pointer-events:none; transition:.25s; }
+    .toast.show { opacity:1; transform:translateY(0); }
+    @media(max-width:760px) { .nav { align-items:flex-start; flex-direction:column; padding:12px 0; gap:6px; } .menu { width:100%; overflow-x:auto; padding:3px 0 7px; gap:18px; white-space:nowrap; } .hero { min-height:470px; padding:55px 0; } .grid { grid-template-columns:1fr 1fr; } .game-layout { grid-template-columns:1fr; } }
+    @media(max-width:500px) { .wrap { width:min(100% - 28px,1100px); } .grid { grid-template-columns:1fr; } .stats { gap:20px; } section.content { padding:52px 0; } #shooter { height:330px; } .goal-banner { align-items:flex-start; flex-direction:column; } .answers { grid-template-columns:1fr; } }
+    @media(prefers-reduced-motion:reduce) { *,*:before,*:after { scroll-behavior:auto!important; transition:none!important; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav wrap" aria-label="주요 메뉴">
+      <a class="brand" href="#home"><b>◆</b> JAY'S ARCADE</a>
+      <div class="menu">
+        <a href="#about">소개</a><a href="#games">좋아하는 게임</a><a href="#shooter-section">슈팅게임</a><a href="#quiz-section">퀴즈</a><a href="#goals">목표</a>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <section class="hero" id="home">
+      <div class="hero-inner wrap">
+        <div class="eyebrow">PLAYER 1 · WEBSITE ONLINE</div>
+        <h1>안녕! 여기는<br><span>제이의 게임 아지트</span></h1>
+        <p>게임도 좋아하고, 새로운 걸 만드는 것도 좋아하는 초등학교 6학년 제이의 공간이야. 구경하고 미니게임도 해봐!</p>
+        <div class="actions"><a class="btn primary" href="#shooter-section">🚀 슈팅게임 시작</a><button class="btn" id="helloButton" type="button">✨ 인사하기</button></div>
+        <div class="stats"><div class="stat"><strong>🎮 게임</strong><small>즐겨 하는 취미</small></div><div class="stat"><strong>💡 코딩</strong><small>새로운 도전</small></div><div class="stat"><strong>⭐ 꿈꾸는 중</strong><small>나만의 게임 만들기</small></div></div>
+      </div>
+    </section>
+    <section class="content" id="about">
+      <div class="wrap">
+        <div class="section-head"><p class="eyebrow">ABOUT PLAYER 1</p><h2>나를 소개할게</h2><p>아래 내용을 내 이야기로 바꿔서 나만의 홈페이지로 꾸며봐!</p></div>
+        <div class="grid">
+          <article class="card"><div class="card-icon">👋</div><h3>나는 제이야</h3><p>초등학교 6학년이고, 재미있는 게임과 새로운 아이디어를 좋아해. 직접 만든 것을 친구들에게 보여주는 것도 즐거워!</p></article>
+          <article class="card"><div class="card-icon">🎯</div><h3>좋아하는 취미</h3><p>게임하기, 블록으로 무언가 만들기, 코딩으로 작은 작품 만들기가 취미야. 오늘은 어떤 걸 만들지 늘 궁금해.</p><span class="tag">게임</span><span class="tag">코딩</span><span class="tag">만들기</span></article>
+          <article class="card"><div class="card-icon">🧩</div><h3>내가 좋아하는 것</h3><p>어려운 문제를 하나씩 풀어서 작동하게 만들 때 뿌듯해. 실패해도 다시 고치면 되니까!</p></article>
+        </div>
+      </div>
+    </section>
+    <section class="content" id="games">
+      <div class="wrap">
+        <div class="section-head"><p class="eyebrow">MY FAVORITES</p><h2>좋아하는 게임</h2><p>좋아하는 게임의 이름과 이유를 직접 바꿔 적어봐.</p></div>
+        <div class="grid">
+          <article class="card"><div class="card-icon">⛏️</div><h3>마인크래프트</h3><p>블록으로 내가 상상한 집과 세계를 만들 수 있어서 좋아해.</p><span class="tag">건축</span><span class="tag">탐험</span></article>
+          <article class="card"><div class="card-icon">🏎️</div><h3>레이싱 게임</h3><p>빠르게 달리며 기록을 세우고, 새로운 코스에 도전하는 게 재미있어.</p><span class="tag">속도</span><span class="tag">도전</span></article>
+          <article class="card"><div class="card-icon">🕹️</div><h3>나만의 게임</h3><p>언젠가는 캐릭터와 규칙을 모두 직접 만든 게임을 완성하고 싶어!</p><span class="tag">만들기</span><span class="tag">상상력</span></article>
+        </div>
+      </div>
+    </section>
+    <section class="content" id="shooter-section">
+      <div class="wrap">
+        <div class="section-head"><p class="eyebrow">MINI GAME 01</p><h2>네온 슈팅게임</h2><p>내 우주선을 움직여 내려오는 적을 맞혀봐. 적과 부딪히면 게임 오버야!</p></div>
+        <div class="game-layout">
+          <div>
+            <div class="game-box">
+              <div class="game-top"><strong>✦ SPACE DEFENDER</strong><span>점수 <span id="score">0</span></span></div>
+              <div class="canvas-wrap"><canvas id="shooter" aria-label="우주선을 움직여 적을 맞히는 슈팅게임"></canvas>
+                <div class="game-overlay" id="gameOverlay"><div><h3 id="overlayTitle">출격 준비!</h3><p id="overlayText">시작 버튼을 누르고 도전해봐.</p><button class="btn primary" id="startGame" type="button">게임 시작</button></div></div>
+              </div>
+            </div>
+            <div class="controls"><button class="btn" id="left" aria-label="왼쪽 이동">◀</button><button class="btn" id="fire" aria-label="발사">발사</button><button class="btn" id="right" aria-label="오른쪽 이동">▶</button></div>
+          </div>
+          <aside class="card side-card"><div><div class="card-icon">🎮</div><h3>조작 방법</h3><ul><li>키보드 <b>← →</b> 또는 <b>A D</b>: 이동</li><li><b>스페이스바</b>: 총알 발사</li><li>맞히면 <b>10점</b>을 얻어!</li><li>스마트폰은 아래 버튼을 눌러봐.</li></ul></div><p>최고 기록은 이 기기에 저장돼. 현재 최고: <b id="bestScore">0</b>점</p></aside>
+        </div>
+      </div>
+    </section>
+    <section class="content" id="quiz-section">
+      <div class="wrap">
+        <div class="section-head"><p class="eyebrow">MINI GAME 02</p><h2>게임 상식 퀴즈</h2><p>정답을 골라봐. 맞히면 반짝이는 축하 메시지가 나와!</p></div>
+        <div class="card quiz"><p class="question" id="question">게임에서 캐릭터가 점프하게 만드는 코드는 무엇일까?</p><div class="answers" id="answers"></div><div id="quizResult" aria-live="polite">정답을 선택해봐!</div><button class="btn" id="nextQuestion" type="button">다음 문제 ↻</button></div>
+      </div>
+    </section>
+    <section class="content" id="goals">
+      <div class="wrap">
+        <div class="section-head"><p class="eyebrow">NEXT LEVEL</p><h2>나의 목표</h2></div>
+        <div class="goal-banner"><div><h3>🎯 다음 목표: 내가 만든 게임 완성하기</h3><p>코딩을 더 배워서 멋진 캐릭터와 재미있는 규칙이 있는 게임을 만들고 싶어. 다음엔 어떤 작품을 만들까?</p></div><button class="btn primary" id="goalButton" type="button">목표 응원하기 💙</button></div>
+      </div>
+    </section>
+  </main>
+  <footer><div class="wrap">Made with <b>💙</b> by 제이 · 나만의 멋진 아지트</div></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    // 버튼을 눌렀을 때 잠깐 나타나는 알림
+    const toast = document.querySelector('#toast');
+    let toastTimer;
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+    document.querySelector('#helloButton').addEventListener('click', () => showToast('반가워! 내 게임 아지트에 온 걸 환영해 ✨'));
+    document.querySelector('#goalButton').addEventListener('click', event => {
+      event.currentTarget.textContent = '응원 고마워! ✨';
+      showToast('제이의 다음 레벨을 응원할게! 💙');
+    });
+
+    // 퀴즈: 문제와 보기를 바꿔 가며 보여줘요.
+    const quizItems = [
+      { q:'게임에서 캐릭터가 점프하게 만드는 코드는 무엇일까?', a:['점프 명령','숨기기 명령','소리 끄기','화면 지우기'], correct:0 },
+      { q:'HTML은 웹페이지에서 주로 어떤 역할을 할까?', a:['페이지의 뼈대 만들기','컴퓨터 끄기','사진 찍기','인터넷 연결 끊기'], correct:0 },
+      { q:'게임에서 점수가 10점씩 올라가면 3번 성공했을 때 몇 점일까?', a:['13점','30점','100점','3점'], correct:1 }
+    ];
+    let quizIndex = 0, quizLocked = false;
+    function showQuestion() {
+      const item = quizItems[quizIndex];
+      quizLocked = false;
+      document.querySelector('#question').textContent = item.q;
+      document.querySelector('#quizResult').textContent = '정답을 선택해봐!';
+      const list = document.querySelector('#answers'); list.replaceChildren();
+      item.a.forEach((answer, index) => {
+        const button = document.createElement('button'); button.className = 'btn'; button.type = 'button'; button.textContent = answer;
+        button.addEventListener('click', () => {
+          if (quizLocked) return;
+          quizLocked = true;
+          if (index === item.correct) { button.classList.add('correct'); document.querySelector('#quizResult').textContent = '정답이야! 반짝반짝 ✨'; showToast('정답! 잘했어! 🎉'); }
+          else { button.classList.add('wrong'); document.querySelector('#quizResult').textContent = `아쉽다! 정답은 “${item.a[item.correct]}”야.`; }
+        });
+        list.append(button);
+      });
+    }
+    document.querySelector('#nextQuestion').addEventListener('click', () => { quizIndex = (quizIndex + 1) % quizItems.length; showQuestion(); });
+    showQuestion();
+
+    // 슈팅게임은 캔버스에 직접 그려요.
+    (() => {
+      const canvas = document.querySelector('#shooter'), ctx = canvas.getContext('2d');
+      const overlay = document.querySelector('#gameOverlay'), scoreText = document.querySelector('#score');
+      const keys = new Set(); let w = 0, h = 0, dpr = 1, player, bullets = [], enemies = [], stars = [], score = 0, best = Number(localStorage.getItem('jayBestScore') || 0), running = false, last = 0, spawn = 0, shot = 0, frame;
+      document.querySelector('#bestScore').textContent = best;
+      function resize() {
+        const box = canvas.getBoundingClientRect(); w = box.width; h = box.height; dpr = Math.min(devicePixelRatio || 1, 2);
+        canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        if (player) { player.x = Math.min(w - player.r, Math.max(player.r, player.x)); player.y = h - 42; }
+        paint();
+      }
+      function reset() {
+        score = 0; scoreText.textContent = score; player = { x:w/2, y:h-42, r:15, speed:330 };
+        bullets = []; enemies = []; spawn = 0; shot = 0; last = performance.now();
+        stars = Array.from({length:65}, () => ({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.5+.4}));
+      }
+      function start() { cancelAnimationFrame(frame); reset(); running = true; overlay.hidden = true; frame = requestAnimationFrame(loop); }
+      function finish() {
+        running = false;
+        if (score > best) { best = score; localStorage.setItem('jayBestScore', String(best)); document.querySelector('#bestScore').textContent = best; }
+        document.querySelector('#overlayTitle').textContent = '게임 오버!';
+        document.querySelector('#overlayText').textContent = `최종 점수 ${score}점 · 다시 도전해봐!`;
+        document.querySelector('#startGame').textContent = '다시 시작'; overlay.hidden = false;
+      }
+      function loop(now) { if (!running) return; const dt = Math.min((now-last)/1000,.04); last=now; update(dt); paint(); if (running) frame=requestAnimationFrame(loop); }
+      function update(dt) {
+        if (keys.has('arrowleft') || keys.has('a')) player.x -= player.speed*dt;
+        if (keys.has('arrowright') || keys.has('d')) player.x += player.speed*dt;
+        player.x = Math.max(player.r, Math.min(w-player.r,player.x));
+        shot -= dt; if ((keys.has(' ') || keys.has('fire')) && shot<=0) { bullets.push({x:player.x,y:player.y-15}); shot=.22; }
+        bullets.forEach(b => b.y -= 520*dt); bullets = bullets.filter(b => b.y > -10);
+        spawn += dt; if (spawn > Math.max(.38,.9-score/800)) { spawn=0; const r=12+Math.random()*9; enemies.push({x:r+Math.random()*(w-2*r),y:-r,r,speed:85+Math.random()*65+score*.08,phase:Math.random()*6}); }
+        for (const e of enemies) { e.y += e.speed*dt; e.x += Math.sin(e.y*.012+e.phase)*20*dt; if (Math.hypot(e.x-player.x,e.y-player.y)<e.r+player.r*.7) { finish(); return; } }
+        for (const b of bullets) for (const e of enemies) if (!e.hit && Math.hypot(b.x-e.x,b.y-e.y)<e.r+4) { e.hit=true; b.hit=true; score+=10; scoreText.textContent=score; break; }
+        bullets=bullets.filter(b=>!b.hit); enemies=enemies.filter(e=>!e.hit&&e.y<h+e.r);
+        stars.forEach(s=>{s.y+=25*dt;if(s.y>h){s.y=0;s.x=Math.random()*w;}});
+      }
+      function paint() {
+        ctx.clearRect(0,0,w,h); const bg=ctx.createLinearGradient(0,0,0,h); bg.addColorStop(0,'#0c1b35'); bg.addColorStop(1,'#060b16'); ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+        ctx.fillStyle='#a9eaff'; for (const s of stars) {ctx.globalAlpha=.35+s.r/3;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();} ctx.globalAlpha=1;
+        for (const b of bullets) {ctx.shadowColor='#4bdcff';ctx.shadowBlur=12;ctx.fillStyle='#d9fbff';ctx.fillRect(b.x-2,b.y-8,4,14);} ctx.shadowBlur=0;
+        for (const e of enemies) {ctx.save();ctx.translate(e.x,e.y);ctx.shadowColor='#ff5b91';ctx.shadowBlur=15;ctx.fillStyle='#ff628e';ctx.beginPath();ctx.moveTo(0,e.r);ctx.lineTo(e.r,-e.r*.5);ctx.quadraticCurveTo(0,-e.r*1.2,-e.r,-e.r*.5);ctx.fill();ctx.restore();}
+        if (player) {ctx.save();ctx.translate(player.x,player.y);ctx.shadowColor='#4bdcff';ctx.shadowBlur=17;ctx.fillStyle='#4bdcff';ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(15,15);ctx.lineTo(0,8);ctx.lineTo(-15,15);ctx.closePath();ctx.fill();ctx.fillStyle='#effcff';ctx.beginPath();ctx.ellipse(0,-2,4,7,0,0,Math.PI*2);ctx.fill();ctx.restore();}
+      }
+      window.addEventListener('keydown', e => { const key=e.key.toLowerCase(); if(['arrowleft','arrowright',' '].includes(key)) e.preventDefault(); if(key===' '&&!running&&!overlay.hidden) start(); keys.add(key); });
+      window.addEventListener('keyup', e => keys.delete(e.key.toLowerCase())); window.addEventListener('blur',()=>keys.clear());
+      document.querySelector('#startGame').addEventListener('click',start);
+      function hold(id,key) {const button=document.querySelector(id);button.addEventListener('pointerdown',e=>{e.preventDefault();button.setPointerCapture(e.pointerId);keys.add(key);});['pointerup','pointercancel','lostpointercapture'].forEach(type=>button.addEventListener(type,()=>keys.delete(key)));}
+      hold('#left','arrowleft');hold('#right','arrowright');hold('#fire','fire');window.addEventListener('resize',resize);resize();
+    })();
+  </script>
+</body>
+</html>
